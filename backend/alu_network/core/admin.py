@@ -13,7 +13,7 @@ class UserAdmin(BaseUserAdmin):
     Admin Config for the user model
     """
     ordering = ['id']
-    list_display = ['full_name', 'email', 'user_role']
+    list_display = ['id', 'full_name', 'email', 'user_role']
     readonly_fields = ['last_login']
 
     fieldsets = (

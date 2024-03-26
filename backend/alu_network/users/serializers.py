@@ -2,20 +2,32 @@
 Serializers for the user API
 """
 
+from core.models import Link
 from rest_framework import serializers
 from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model, authenticate
+
+
+class LinkSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the link object
+    """
+    class Meta:
+        model = Link
+        fields = ('name', 'url')
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Serializer for the user object
     """
+    links = serializers.SerializerMethodField()
     class Meta:
         model = get_user_model()
         fields = ('id', 'email', 'first_name', 'last_name', 'short_bio', 'about_me',
-                  'user_role', 'intake', 'professional_role', 'current_company')
+                  'user_role', 'intake', 'professional_role', 'current_company', 'password', 'links')
         read_only_fields = ('id',)
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
 
     def create(self, validated_data):
         """
@@ -36,8 +48,15 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
+    def get_links(self, obj):
+        """
+        Retrieve links added by a user to the profile
+        """
+        links = Link.objects.filter(user=obj)
+        return LinkSerializer(links, many=True).data
 
-class  AuthTokenSerializer(serializers.Serializer):
+
+class AuthTokenSerializer(serializers.Serializer):
     """Serializer for the user authentication object"""
     email = serializers.EmailField()
     password = serializers.CharField(
@@ -50,8 +69,8 @@ class  AuthTokenSerializer(serializers.Serializer):
 
         user = authenticate(
             request=self.context.get('request'),
-            email = attrs.get('email'),
-            password = attrs.get('password')
+            email=attrs.get('email'),
+            password=attrs.get('password')
         )
 
         if not user:

@@ -40,6 +40,7 @@ class UserManager(BaseUserManager):
 
         return user
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom user model.
@@ -84,7 +85,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         """String representation of a user"""
-        return self.full_name
+        return f"{self.full_name} - {self.email}"
 
 
 class Link(models.Model):
@@ -95,17 +96,20 @@ class Link(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
     )
-    name = models.URLField(help_text="The name will be gotten from the URL domain. Edit only if you want something different.")
+    name = models.URLField(blank=True, help_text="The name will be gotten \
+        from the URL domain. Edit only if you want something different.")
     url = models.URLField()
 
-    @property
-    def url_name(self):
+    def save(self, *args, **kwargs):
+        """
+        Override the save method to set the name from URL if not provided
+        """
         if not self.name:
             ext = tldextract.extract(self.url)
-            domain = ext.domain.lower()
-            return domain.capitalize()
-        return self.name.capitalize()
+            domain = ext.domain.capitalize()
+            self.name = domain
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """String representation of a link"""
-        return f"{str(self.user)} {self.url_name} Link"
+        return f"{str(self.user)} {self.name} Link"

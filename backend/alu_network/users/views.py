@@ -9,17 +9,23 @@ from users.serializers import UserSerializer, AuthTokenSerializer
 
 
 class CreateUserView(generics.ListCreateAPIView):
-    """View to create a token for user"""
+    """View to create a user"""
+    serializer_class = UserSerializer
+    queryset = get_user_model().objects.all()
+
+
+class AllUsersView(generics.RetrieveAPIView):
+    """APIView to retrieve all users"""
     serializer_class = UserSerializer
     queryset = get_user_model().objects.all()
 
 class CreateTokenView(ObtainAuthToken):
-    """"""
+    """APIView to create a token for a user"""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
-class ManageUserView(generics.RetrieveUpdateAPIView):
-    """"""
+class ManageAuthUserView(generics.RetrieveUpdateAPIView):
+    """APIView to manage the authenticated user"""
     serializer_class = UserSerializer
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
